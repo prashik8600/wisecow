@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-SRVPORT=9000
+SRVPORT=4499
 RSPFILE=response
 
 rm -f $RSPFILE
 mkfifo $RSPFILE
 
-# export PATH=$PATH:/usr/games
+export PATH=$PATH:/usr/games
 
 get_api() {
 	read line
@@ -42,7 +42,7 @@ main() {
 	echo "Wisdom served on port=$SRVPORT..."
 
 	while [ 1 ]; do
-		# cat $RSPFILE | socat - TCP-LISTEN:$SRVPORT,reuseaddr,fork  | handleRequest
+		cat $RSPFILE | socat - TCP-LISTEN:$SRVPORT,reuseaddr,fork  | handleRequest
 		# cat $RSPFILE | nc -lN $SRVPORT | handleRequest
 		sleep 0.01
 	done
