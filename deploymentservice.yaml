@@ -1,36 +1,55 @@
 apiVersion: apps/v1
-kind: Deployment # Kubernetes resource kind we are creating
+kind: Deployment    #deployment 
 metadata:
-  name: spring-boot-k8s-deployment
+  name: wisecowdeply  #give any name of your project 
+  namespace: default     #create your own namespace 
+  labels:
+    role: wisecow-deployment
+    env: demo
 spec:
+  replicas: 2            #replicas for scaling up or down
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 25% 
   selector:
     matchLabels:
-      app: spring-boot-k8s
-  replicas: 2 # Number of replicas that will be created for this deployment
+      role: wisecow-deployment
   template:
     metadata:
       labels:
-        app: spring-boot-k8s
+        role: wisecow-deployment
     spec:
       containers:
-        - name: spring-boot-k8s
-          image: prashw23/wisecow4 # Image that will be used to containers in the cluster
-          imagePullPolicy: IfNotPresent
+        - name: wisecow-container
+          image: prashw23/wisecow4
+          imagePullPolicy: Always
           ports:
-            - containerPort: 8080 # The port that the container is running on in the cluster
-
-
----
-
-apiVersion: v1 # Kubernetes API version
-kind: Service # Kubernetes resource kind we are creating
-metadata: # Metadata of the resource kind we are creating
-  name: springboot-k8ssvc
-spec:
-  selector:
-    app: spring-boot-k8s
-  ports:
-    - protocol: "TCP"
-      port: 8080 # The port that the service is running on in the cluster
-      targetPort: 8080 # The port exposed by the service
-  type: NodePort # type of the service.
+            - containerPort: 4499   #if not available add in Security group 
+          # volumeMounts:
+          #   - name: tls-certs
+          #     mountPath: /etc/tls
+          #     readOnly: true
+          # env:
+          #   - name: TLS_CERT_FILE
+          #     value: /etc/tls/wisecow.crt
+          #   - name: TLS_KEY_FILE
+          #     value: /etc/tls/wisecow.key
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4499
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4499
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            successThreshold: 1
+      # volumes:
+      #   - name: tls-certs
+      #     secret:
+      #       secretName: wisecow-tls
